@@ -3,6 +3,7 @@ package com.bankaccount.domain.services;
 import com.bankaccount.application.exceptions.BankAccountError;
 import com.bankaccount.application.exceptions.BankAccountException;
 import com.bankaccount.domain.models.BankAccount;
+import com.bankaccount.domain.models.LimitedBankAccount;
 import com.bankaccount.domain.ports.BankAccountRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,6 +49,27 @@ public class BankAccountDomainTests {
         assertThat(createdAccount).isNotNull();
         assertThat(createdAccount.getBalance()).isEqualTo(initialBalance);
         assertThat(createdAccount.getOverdraftLimit()).isEqualTo(overdraftLimit);
+
+        verify(bankAccountRepository, times(1)).save(any(BankAccount.class));
+    }
+
+    @Test
+    public void testCreateLimitedAccount() {
+        // Given
+        double initialBalance = 100.0;
+        double depositLimit = 500.0;
+
+        LimitedBankAccount expectedAccount = new LimitedBankAccount(initialBalance, depositLimit);
+        when(bankAccountRepository.save(any(LimitedBankAccount.class))).thenReturn(expectedAccount);
+
+        // When
+        LimitedBankAccount createdAccount = bankAccountDomain.createLimitedAccount(initialBalance, depositLimit);
+
+        // Then
+        assertThat(createdAccount).isNotNull();
+        assertThat(createdAccount.getBalance()).isEqualTo(initialBalance);
+        assertThat(createdAccount.getOverdraftLimit()).isEqualTo(0);
+        assertThat(createdAccount.getDepositLimit()).isEqualTo(depositLimit);
 
         verify(bankAccountRepository, times(1)).save(any(BankAccount.class));
     }

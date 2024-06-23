@@ -1,14 +1,12 @@
 package com.bankaccount;
 
-import com.bankaccount.application.exceptions.BankAccountError;
-import com.bankaccount.application.exceptions.BankAccountException;
 import com.bankaccount.domain.models.BankAccount;
+import com.bankaccount.domain.models.LimitedBankAccount;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -18,7 +16,6 @@ import org.springframework.util.MultiValueMap;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -52,6 +49,22 @@ public class BankAccountEndToEndTests {
         assertThat(createdAccount.getAccountNumber()).isNotNull();
         assertThat(createdAccount.getBalance()).isEqualTo(initialBalance);
         assertThat(createdAccount.getOverdraftLimit()).isEqualTo(overdraftLimit);
+    }
+
+    @Test
+    public void testCreateLimitedAccount() {
+        // Given
+        double initialBalance = 200.0;
+        double depositLimit = 250.0;
+
+        // When
+        LimitedBankAccount createdAccount = createLimitedAccount(initialBalance, depositLimit);
+
+        // Then
+        assertThat(createdAccount).isNotNull();
+        assertThat(createdAccount.getAccountNumber()).isNotNull();
+        assertThat(createdAccount.getBalance()).isEqualTo(initialBalance);
+        assertThat(createdAccount.getDepositLimit()).isEqualTo(depositLimit);
     }
 
     @Test
@@ -119,6 +132,19 @@ public class BankAccountEndToEndTests {
                 .returnResult().getResponseBody();
     }
 
+    private LimitedBankAccount createLimitedAccount(double initialBalance, double depositLimit) {
+        String jsonBody = "{\"balance\": " + initialBalance + ", \"depositLimit\": " + depositLimit + "}";
+
+        return webTestClient.post()
+                .uri("/limitedAccounts/createAccount")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(jsonBody)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(LimitedBankAccount.class)  // Assurez-vous que la désérialisation fonctionne correctement ici
+                .returnResult().getResponseBody();
+    }
+
     private BankAccount getAccount(UUID accountNumber) {
         return webTestClient.get()
                 .uri("/accounts/{accountNumber}", accountNumber)
@@ -169,4 +195,5 @@ public class BankAccountEndToEndTests {
                 .expectBody(BankAccount.class)
                 .returnResult().getResponseBody();
     }
+
 }

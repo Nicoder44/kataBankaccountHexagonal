@@ -7,6 +7,7 @@ import com.bankaccount.domain.ports.BankAccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import com.bankaccount.domain.models.LimitedBankAccount;
 
 import java.util.UUID;
 
@@ -18,6 +19,10 @@ public class BankAccountDomain {
 
     public BankAccount createAccount(double initialBalance, double overdraftLimit) {
         return bankAccountRepository.save(new BankAccount(initialBalance, overdraftLimit));
+    }
+
+    public LimitedBankAccount createLimitedAccount(double initialBalance, double depositLimit) {
+        return (LimitedBankAccount) bankAccountRepository.save(new LimitedBankAccount(initialBalance, depositLimit));
     }
 
     public BankAccount getAccount(UUID accountNumber) {
