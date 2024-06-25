@@ -5,6 +5,7 @@ import com.bankaccount.application.exceptions.BankAccountException;
 import com.bankaccount.domain.models.BankAccount;
 import com.bankaccount.domain.models.LimitedBankAccount;
 import com.bankaccount.domain.ports.BankAccountRepository;
+import com.bankaccount.infrastructure.adapters.repositories.SpringDataJpaTransactionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -20,10 +21,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-public class BankAccountDomainTests {
+class BankAccountDomainTests {
 
     @Mock
     private BankAccountRepository bankAccountRepository;
+    @Mock
+    private SpringDataJpaTransactionRepository transactionRepository;
 
     @InjectMocks
     private BankAccountDomain bankAccountDomain;
@@ -34,7 +37,7 @@ public class BankAccountDomainTests {
     }
 
     @Test
-    public void testCreateAccount() {
+    void testCreateAccount() {
         // Given
         double initialBalance = 100.0;
         double overdraftLimit = 500.0;
@@ -54,7 +57,7 @@ public class BankAccountDomainTests {
     }
 
     @Test
-    public void testCreateLimitedAccount() {
+    void testCreateLimitedAccount() {
         // Given
         double initialBalance = 100.0;
         double depositLimit = 500.0;
@@ -68,14 +71,14 @@ public class BankAccountDomainTests {
         // Then
         assertThat(createdAccount).isNotNull();
         assertThat(createdAccount.getBalance()).isEqualTo(initialBalance);
-        assertThat(createdAccount.getOverdraftLimit()).isEqualTo(0);
+        assertThat(createdAccount.getOverdraftLimit()).isZero();
         assertThat(createdAccount.getDepositLimit()).isEqualTo(depositLimit);
 
         verify(bankAccountRepository, times(1)).save(any(BankAccount.class));
     }
 
     @Test
-    public void testGetAccount_existingAccount() {
+    void testGetAccount_existingAccount() {
         // Given
         UUID accountNumber = UUID.randomUUID();
         BankAccount mockAccount = new BankAccount(100.0, 0);
@@ -85,13 +88,12 @@ public class BankAccountDomainTests {
         BankAccount retrievedAccount = bankAccountDomain.getAccount(accountNumber);
 
         // Then
-        assertThat(retrievedAccount).isNotNull();
-        assertThat(retrievedAccount).isEqualTo(mockAccount);
+        assertThat(retrievedAccount).isNotNull().isEqualTo(mockAccount);
         assertThat(retrievedAccount.getBalance()).isEqualTo(100.0);
     }
 
     @Test
-    public void testGetAccount_nonExistingAccount() {
+    void testGetAccount_nonExistingAccount() {
         // Given
         UUID accountNumber = UUID.randomUUID();
         when(bankAccountRepository.findByAccountNumber(accountNumber)).thenReturn(null);
@@ -104,7 +106,7 @@ public class BankAccountDomainTests {
     }
 
     @Test
-    public void testDeposit_success() {
+    void testDeposit_success() {
         // Given
         UUID accountNumber = UUID.randomUUID();
         BankAccount account = new BankAccount(100.0, 0);
@@ -121,7 +123,7 @@ public class BankAccountDomainTests {
     }
 
     @Test
-    public void testDeposit_accountNotFound() {
+    void testDeposit_accountNotFound() {
         // Given
         UUID accountNumber = UUID.randomUUID();
         when(bankAccountRepository.findByAccountNumber(accountNumber)).thenReturn(null);
@@ -133,7 +135,7 @@ public class BankAccountDomainTests {
     }
 
     @Test
-    public void testWithdraw_success() {
+    void testWithdraw_success() {
         // Given
         UUID accountNumber = UUID.randomUUID();
         BankAccount account = new BankAccount(100.0, 0);
@@ -150,7 +152,7 @@ public class BankAccountDomainTests {
     }
 
     @Test
-    public void testWithdraw_insufficientBalance() {
+    void testWithdraw_insufficientBalance() {
         // Given
         UUID accountNumber = UUID.randomUUID();
         BankAccount account = new BankAccount(100.0, 0);
@@ -163,7 +165,7 @@ public class BankAccountDomainTests {
     }
 
     @Test
-    public void testSetOverDraftLimit_success() {
+    void testSetOverDraftLimit_success() {
         // Given
         UUID accountNumber = UUID.randomUUID();
         BankAccount account = new BankAccount(100.0, 0);
@@ -180,7 +182,7 @@ public class BankAccountDomainTests {
     }
 
     @Test
-    public void testSetOverDraftLimit_negativeLimit() {
+    void testSetOverDraftLimit_negativeLimit() {
         // Given
         UUID accountNumber = UUID.randomUUID();
         BankAccount account = new BankAccount(100.0, 0);

@@ -1,5 +1,6 @@
-package com.bankaccount.infrastructure.adapters.controllers;
+package com.bankaccount.applications.controllers;
 
+import com.bankaccount.application.controllers.LimitedBankAccountController;
 import com.bankaccount.application.services.LimitedBankAccountService;
 import com.bankaccount.domain.models.LimitedBankAccount;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,12 +14,9 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.mockito.Mockito.*;
 
-public class LimitedBankAccountControllerTests {
+class LimitedBankAccountControllerTests {
 
     @Mock
     private LimitedBankAccountService limitedBankAccountService;
@@ -35,12 +33,8 @@ public class LimitedBankAccountControllerTests {
     }
 
     @Test
-    public void testCreateLimitedAccount() throws Exception {
+    void testCreateLimitedAccount() throws Exception {
         // Given
-        Map<String, Double> payload = new HashMap<>();
-        payload.put("balance", 100.0);
-        payload.put("depositLimit", 200.0);
-
         LimitedBankAccount mockAccount = new LimitedBankAccount(100.0, 200.0);
         when(limitedBankAccountService.createAccount(100.0, 200.0)).thenReturn(mockAccount);
 

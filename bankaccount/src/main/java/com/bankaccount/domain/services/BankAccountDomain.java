@@ -3,19 +3,24 @@ package com.bankaccount.domain.services;
 import com.bankaccount.application.exceptions.BankAccountError;
 import com.bankaccount.application.exceptions.BankAccountException;
 import com.bankaccount.domain.models.BankAccount;
+import com.bankaccount.domain.models.LimitedBankAccount;
+import com.bankaccount.domain.models.Transaction;
 import com.bankaccount.domain.ports.BankAccountRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.bankaccount.infrastructure.adapters.repositories.SpringDataJpaTransactionRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import com.bankaccount.domain.models.LimitedBankAccount;
 
+import java.util.Date;
 import java.util.UUID;
 
 @Component
+@RequiredArgsConstructor
 public class BankAccountDomain {
 
-    @Autowired
-    private BankAccountRepository bankAccountRepository;
+    private final BankAccountRepository bankAccountRepository;
+
+    private final SpringDataJpaTransactionRepository transactionRepository;
 
     public BankAccount createAccount(double initialBalance, double overdraftLimit) {
         return bankAccountRepository.save(new BankAccount(initialBalance, overdraftLimit));
@@ -36,6 +41,9 @@ public class BankAccountDomain {
     public BankAccount deposit(UUID accountNumber, double amount) {
         BankAccount account = getAccount(accountNumber);
         account.deposit(amount);
+
+        Transaction transaction = new Transaction(account, new Date(), "DEPOSIT", amount);
+        transactionRepository.save(transaction);
         return bankAccountRepository.save(account);
     }
 
@@ -44,6 +52,8 @@ public class BankAccountDomain {
 
         boolean result = account.withdraw(amount);
         if (result) {
+            Transaction transaction = new Transaction(account, new Date(), "WITHDRAWAL", amount);
+            transactionRepository.save(transaction);
             return bankAccountRepository.save(account);
         }
         throw new BankAccountException(BankAccountError.INSUFFICIENT_BALANCE, HttpStatus.BAD_REQUEST);
@@ -52,7 +62,7 @@ public class BankAccountDomain {
 
     public BankAccount setOverDraftLimit(UUID accountNumber, double amount) {
         BankAccount account = getAccount(accountNumber);
-        if(amount < 0){
+        if (amount < 0) {
             throw new BankAccountException(BankAccountError.INVALID_VALUE, HttpStatus.BAD_REQUEST);
         }
         account.setOverdraftLimit(amount);

@@ -2,16 +2,16 @@ package com.bankaccount.application.services;
 
 import com.bankaccount.domain.models.BankAccount;
 import com.bankaccount.domain.services.BankAccountDomain;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class BankAccountService {
 
-    @Autowired
-    private BankAccountDomain bankAccountDomain;
+    private final BankAccountDomain bankAccountDomain;
 
     public BankAccount createAccount(double initialBalance, double overdraftLimit) {
         return bankAccountDomain.createAccount(initialBalance, overdraftLimit);

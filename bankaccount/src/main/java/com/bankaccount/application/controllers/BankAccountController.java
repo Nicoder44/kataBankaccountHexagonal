@@ -1,19 +1,23 @@
-package com.bankaccount.infrastructure.adapters.controllers;
+package com.bankaccount.application.controllers;
 
 
 import com.bankaccount.application.services.BankAccountService;
+import com.bankaccount.application.services.StatementService;
 import com.bankaccount.domain.models.BankAccount;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.bankaccount.domain.models.Statement;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/accounts")
+@RequiredArgsConstructor
 public class BankAccountController {
 
-    @Autowired
-    private BankAccountService bankAccountService;
+    private final BankAccountService bankAccountService;
+
+    private final StatementService statementService;
 
     @PostMapping("/createAccount")
     public BankAccount createAccount(@RequestBody(required = false) BankAccount account) {
@@ -38,5 +42,10 @@ public class BankAccountController {
     @PostMapping("/{accountNumber}/setOverDraftLimit")
     public BankAccount setOverDraftLimit(@PathVariable UUID accountNumber, @RequestParam double amount) {
         return bankAccountService.setOverdraftLimit(accountNumber, amount);
+    }
+
+    @GetMapping("/{accountId}/statement")
+    public Statement getMonthlyStatement(@PathVariable UUID accountId) {
+        return statementService.generateMonthlyStatement(accountId);
     }
 }

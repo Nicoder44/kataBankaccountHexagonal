@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-public class JpaBankAccountRepositoryTests {
+class JpaBankAccountRepositoryTests {
 
     @Mock
     private SpringDataJpaBankAccountRepository springDataJpaBankAccountRepository;
@@ -28,7 +28,7 @@ public class JpaBankAccountRepositoryTests {
     }
 
     @Test
-    public void testSave() {
+    void testSave() {
         // Given
         BankAccount mockAccount = new BankAccount(100.0, 50.0);
         when(springDataJpaBankAccountRepository.save(any(BankAccount.class))).thenReturn(mockAccount);
@@ -43,7 +43,7 @@ public class JpaBankAccountRepositoryTests {
     }
 
     @Test
-    public void testFindByAccountNumber_found() {
+    void testFindByAccountNumber_found() {
         // Given
         UUID accountNumber = UUID.randomUUID();
         BankAccount mockAccount = new BankAccount(150.0, 0);
@@ -55,11 +55,11 @@ public class JpaBankAccountRepositoryTests {
         // Then
         assertThat(foundAccount).isNotNull();
         assertThat(foundAccount.getBalance()).isEqualTo(150.0);
-        assertThat(foundAccount.getOverdraftLimit()).isEqualTo(0);
+        assertThat(foundAccount.getOverdraftLimit()).isZero();
     }
 
     @Test
-    public void testFindByAccountNumber_notFound() {
+    void testFindByAccountNumber_notFound() {
         // Given
         UUID accountNumber = UUID.randomUUID();
         when(springDataJpaBankAccountRepository.findByAccountNumber(accountNumber)).thenReturn(Optional.empty());

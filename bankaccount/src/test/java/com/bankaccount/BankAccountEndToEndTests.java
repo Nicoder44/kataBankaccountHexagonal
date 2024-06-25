@@ -1,7 +1,10 @@
 package com.bankaccount;
 
+import com.bankaccount.application.services.StatementService;
 import com.bankaccount.domain.models.BankAccount;
 import com.bankaccount.domain.models.LimitedBankAccount;
+import com.bankaccount.domain.models.Statement;
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,13 +22,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-public class BankAccountEndToEndTests {
+class BankAccountEndToEndTests {
 
     @LocalServerPort
     private int port;
 
     @Autowired
     private WebTestClient webTestClient;
+    @Autowired
+    private StatementService statementService;
 
     private UUID accountNumber;
 
@@ -36,7 +41,7 @@ public class BankAccountEndToEndTests {
     }
 
     @Test
-    public void testCreateAccount() {
+    void testCreateAccount() {
         // Given
         double initialBalance = 200.0;
         double overdraftLimit = 50.0;
@@ -52,7 +57,7 @@ public class BankAccountEndToEndTests {
     }
 
     @Test
-    public void testCreateLimitedAccount() {
+    void testCreateLimitedAccount() {
         // Given
         double initialBalance = 200.0;
         double depositLimit = 250.0;
@@ -68,7 +73,7 @@ public class BankAccountEndToEndTests {
     }
 
     @Test
-    public void testDeposit() {
+    void testDepositThenStatement() {
         // Given
         double depositAmount = 50.0;
 
@@ -78,15 +83,39 @@ public class BankAccountEndToEndTests {
         // Then
         assertThat(updatedAccount).isNotNull();
         assertThat(updatedAccount.getBalance()).isEqualTo(150.0);
+
+        // Verify transaction added
+        assertThat(generateMonthlyStatement(updatedAccount.getAccountNumber()).getTransactions()).hasSize(1);
+        assertThat(generateMonthlyStatement(updatedAccount.getAccountNumber()).getTransactions().getFirst().getType()).isEqualTo("DEPOSIT");
+        assertThat(generateMonthlyStatement(updatedAccount.getAccountNumber()).getTransactions().getFirst().getAmount()).isEqualTo(depositAmount);
     }
 
     @Test
-    public void testNegativeDeposit() {
+    void testWithdrawOnLimitedAccountThenDepositFailThenStatement() {
+
+        double withdrawalAmount = 50.0;
+        BankAccount account = createLimitedAccount(50, 200);
+
+        BankAccount updatedAccount = withdraw(account.getAccountNumber(), withdrawalAmount);
+        assertThat(updatedAccount.getBalance()).isZero();
+
+        depositFailExpected(account.getAccountNumber(), 1000);
+
+        assertThat(updatedAccount.getBalance()).isZero(); // Should be the same because deposit limit is too low
+
+        // Verify transaction added
+        assertThat(generateMonthlyStatement(updatedAccount.getAccountNumber()).getTransactions()).hasSize(1);
+        assertThat(generateMonthlyStatement(updatedAccount.getAccountNumber()).getTransactions().getFirst().getType()).isEqualTo("WITHDRAWAL");
+        assertThat(generateMonthlyStatement(updatedAccount.getAccountNumber()).getTransactions().getFirst().getAmount()).isEqualTo(50);
+    }
+
+    @Test
+    void testNegativeDeposit() {
         // Given
         double depositAmount = -50.0;
 
         // When
-        BankAccount updatedAccount = deposit(accountNumber, depositAmount);
+        deposit(accountNumber, depositAmount);
 
         // Then
         BankAccount account = getAccount(accountNumber);
@@ -94,7 +123,7 @@ public class BankAccountEndToEndTests {
     }
 
     @Test
-    public void testWithdraw() {
+    void testWithdraw() {
         // Given
         double withdrawAmount = 30.0;
 
@@ -107,7 +136,7 @@ public class BankAccountEndToEndTests {
     }
 
     @Test
-    public void testSetOverdraftLimit() {
+    void testSetOverdraftLimit() {
         // Given
         double newOverdraftLimit = 100.0;
 
@@ -168,6 +197,18 @@ public class BankAccountEndToEndTests {
                 .returnResult().getResponseBody();
     }
 
+    private void depositFailExpected(UUID accountNumber, double amount) {
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("amount", String.valueOf(amount));
+
+        webTestClient.post()
+                .uri("/accounts/{accountNumber}/deposit", accountNumber)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .bodyValue(formData)
+                .exchange()
+                .expectStatus().isBadRequest();
+    }
+
     private BankAccount withdraw(UUID accountNumber, double amount) {
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("amount", String.valueOf(amount));
@@ -193,6 +234,15 @@ public class BankAccountEndToEndTests {
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody(BankAccount.class)
+                .returnResult().getResponseBody();
+    }
+
+    private Statement generateMonthlyStatement(UUID accountNumber) {
+        return webTestClient.get()
+                .uri("accounts/{accountNumber}/statement", accountNumber)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(Statement.class)
                 .returnResult().getResponseBody();
     }
 
