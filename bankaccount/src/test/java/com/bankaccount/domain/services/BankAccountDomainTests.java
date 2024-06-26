@@ -4,8 +4,8 @@ import com.bankaccount.application.exceptions.BankAccountError;
 import com.bankaccount.application.exceptions.BankAccountException;
 import com.bankaccount.domain.models.BankAccount;
 import com.bankaccount.domain.models.LimitedBankAccount;
-import com.bankaccount.domain.ports.BankAccountRepository;
-import com.bankaccount.infrastructure.adapters.repositories.SpringDataJpaTransactionRepository;
+import com.bankaccount.domain.ports.out.BankAccountRepository;
+import com.bankaccount.domain.ports.out.TransactionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -26,7 +26,7 @@ class BankAccountDomainTests {
     @Mock
     private BankAccountRepository bankAccountRepository;
     @Mock
-    private SpringDataJpaTransactionRepository transactionRepository;
+    private TransactionRepository transactionRepository;
 
     @InjectMocks
     private BankAccountDomain bankAccountDomain;

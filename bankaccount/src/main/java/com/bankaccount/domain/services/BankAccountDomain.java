@@ -2,11 +2,12 @@ package com.bankaccount.domain.services;
 
 import com.bankaccount.application.exceptions.BankAccountError;
 import com.bankaccount.application.exceptions.BankAccountException;
+import com.bankaccount.application.services.BankAccountServicePorts;
 import com.bankaccount.domain.models.BankAccount;
 import com.bankaccount.domain.models.LimitedBankAccount;
 import com.bankaccount.domain.models.Transaction;
-import com.bankaccount.domain.ports.BankAccountRepository;
-import com.bankaccount.infrastructure.adapters.repositories.SpringDataJpaTransactionRepository;
+import com.bankaccount.domain.ports.out.BankAccountRepository;
+import com.bankaccount.domain.ports.out.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -16,20 +17,20 @@ import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
-public class BankAccountDomain {
+public class BankAccountDomain implements BankAccountServicePorts {
 
     private final BankAccountRepository bankAccountRepository;
 
-    private final SpringDataJpaTransactionRepository transactionRepository;
-
+    private final TransactionRepository transactionRepository;
+    @Override
     public BankAccount createAccount(double initialBalance, double overdraftLimit) {
         return bankAccountRepository.save(new BankAccount(initialBalance, overdraftLimit));
     }
-
+    @Override
     public LimitedBankAccount createLimitedAccount(double initialBalance, double depositLimit) {
         return (LimitedBankAccount) bankAccountRepository.save(new LimitedBankAccount(initialBalance, depositLimit));
     }
-
+    @Override
     public BankAccount getAccount(UUID accountNumber) {
         BankAccount account = bankAccountRepository.findByAccountNumber(accountNumber);
         if (account == null) {
@@ -37,7 +38,7 @@ public class BankAccountDomain {
         }
         return account;
     }
-
+    @Override
     public BankAccount deposit(UUID accountNumber, double amount) {
         BankAccount account = getAccount(accountNumber);
         account.deposit(amount);
@@ -46,7 +47,7 @@ public class BankAccountDomain {
         transactionRepository.save(transaction);
         return bankAccountRepository.save(account);
     }
-
+    @Override
     public BankAccount withdraw(UUID accountNumber, double amount) {
         BankAccount account = getAccount(accountNumber);
 
@@ -59,7 +60,7 @@ public class BankAccountDomain {
         throw new BankAccountException(BankAccountError.INSUFFICIENT_BALANCE, HttpStatus.BAD_REQUEST);
 
     }
-
+    @Override
     public BankAccount setOverDraftLimit(UUID accountNumber, double amount) {
         BankAccount account = getAccount(accountNumber);
         if (amount < 0) {

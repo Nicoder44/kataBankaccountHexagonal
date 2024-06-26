@@ -46,7 +46,7 @@ http://localhost:8080/h2-console
 
 Utilisez les informations de connexion suivantes pour accéder à la base de données :
 ```chatinput
-    JDBC URL : jdbc:h2:mem:testdb
+    JDBC URL : jdbc:h2:file:/data/demo
     User Name : sa
     Password : password
 ```
@@ -65,7 +65,7 @@ Content-Type: application/json
 ````
 Créer un compte limité
 ````sh
-POST /limitedAccounts/createAccount
+POST /accounts/createLimitedAccount
 Content-Type: application/json
 
 {
@@ -106,7 +106,11 @@ GET /accounts/{accountNumber}/statement
 ## Créer un container de l'application
 
 `````shell
-mvn package
-docker build -t bankaccount
+mvn clean package
+`````
+`````shell
+docker build -t bankaccount .
+`````
+`````shell
 docker run -p 8080:8080 bankaccount
 `````

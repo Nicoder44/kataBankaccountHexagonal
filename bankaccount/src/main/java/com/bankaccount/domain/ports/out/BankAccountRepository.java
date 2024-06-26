@@ -1,4 +1,4 @@
-package com.bankaccount.domain.ports;
+package com.bankaccount.domain.ports.out;
 
 import com.bankaccount.domain.models.BankAccount;
 

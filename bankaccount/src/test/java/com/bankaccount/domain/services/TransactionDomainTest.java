@@ -2,7 +2,7 @@ package com.bankaccount.domain.services;
 
 import com.bankaccount.domain.models.BankAccount;
 import com.bankaccount.domain.models.Transaction;
-import com.bankaccount.infrastructure.adapters.repositories.SpringDataJpaTransactionRepository;
+import com.bankaccount.domain.ports.out.TransactionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,10 +20,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class TransactionDomainTest {
+class TransactionDomainTest {
 
     @Mock
-    private SpringDataJpaTransactionRepository mockTransactionRepository;
+    private TransactionRepository mockTransactionRepository;
 
     @InjectMocks
     private TransactionDomain transactionDomain;
@@ -40,7 +40,7 @@ public class TransactionDomainTest {
     }
 
     @Test
-    public void testCreateTransaction() {
+    void testCreateTransaction() {
         // Given
         String transactionType = "DEPOSIT";
         double amount = 100.0;
@@ -64,7 +64,7 @@ public class TransactionDomainTest {
     }
 
     @Test
-    public void testGetTransactionsForAccount() {
+    void testGetTransactionsForAccount() {
         // Given
         Date startDate = new Date();
         Date endDate = new Date();

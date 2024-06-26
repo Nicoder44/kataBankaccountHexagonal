@@ -1,10 +1,9 @@
 package com.bankaccount;
 
-import com.bankaccount.application.services.StatementService;
+import com.bankaccount.application.services.StatementServicePorts;
 import com.bankaccount.domain.models.BankAccount;
 import com.bankaccount.domain.models.LimitedBankAccount;
 import com.bankaccount.domain.models.Statement;
-import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +29,7 @@ class BankAccountEndToEndTests {
     @Autowired
     private WebTestClient webTestClient;
     @Autowired
-    private StatementService statementService;
+    private StatementServicePorts statementService;
 
     private UUID accountNumber;
 
@@ -165,7 +164,7 @@ class BankAccountEndToEndTests {
         String jsonBody = "{\"balance\": " + initialBalance + ", \"depositLimit\": " + depositLimit + "}";
 
         return webTestClient.post()
-                .uri("/limitedAccounts/createAccount")
+                .uri("/accounts/createLimitedAccount")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(jsonBody)
                 .exchange()

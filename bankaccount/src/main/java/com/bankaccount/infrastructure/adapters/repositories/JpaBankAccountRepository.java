@@ -1,7 +1,7 @@
 package com.bankaccount.infrastructure.adapters.repositories;
 
 import com.bankaccount.domain.models.BankAccount;
-import com.bankaccount.domain.ports.BankAccountRepository;
+import com.bankaccount.domain.ports.out.BankAccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 

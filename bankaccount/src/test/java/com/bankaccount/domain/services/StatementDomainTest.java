@@ -1,10 +1,13 @@
 package com.bankaccount.domain.services;
 
-import com.bankaccount.application.services.BankAccountService;
-import com.bankaccount.application.services.TransactionService;
+import com.bankaccount.application.services.BankAccountServicePorts;
+import com.bankaccount.application.services.TransactionServicePorts;
 import com.bankaccount.domain.models.BankAccount;
 import com.bankaccount.domain.models.Statement;
 import com.bankaccount.domain.models.Transaction;
+import com.bankaccount.domain.ports.out.BankAccountRepository;
+import com.bankaccount.domain.ports.out.TransactionRepository;
+import com.bankaccount.infrastructure.adapters.repositories.JpaBankAccountRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,7 +16,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -25,11 +27,9 @@ import static org.mockito.Mockito.*;
 class StatementDomainTest {
 
     @Mock
-    private BankAccountService bankAccountService;
-
+    private BankAccountRepository bankAccountService;
     @Mock
-    private TransactionService transactionService;
-
+    private TransactionRepository transactionService;
     @InjectMocks
     private StatementDomain statementDomain;
 
@@ -48,8 +48,8 @@ class StatementDomainTest {
     @Test
     void testGenerateMonthlyStatement() {
         // Given
-        when(bankAccountService.getAccount(any())).thenReturn(mockAccount);
-        when(transactionService.getTransactionsForAccount(any(), any(), any()))
+        when(bankAccountService.findByAccountNumber(any())).thenReturn(mockAccount);
+        when(transactionService.findByAccount_AccountNumberAndDateBetweenOrderByDateDesc(any(), any(), any()))
                 .thenReturn(mockTransactions);
 
         // When
@@ -61,6 +61,6 @@ class StatementDomainTest {
         assertEquals(2, statement.getNumberOfTransactionsThisMonth());
         assertEquals(mockTransactions, statement.getTransactions());
 
-        verify(bankAccountService, times(1)).getAccount(mockAccount.getAccountNumber());
+        verify(bankAccountService, times(1)).findByAccountNumber(mockAccount.getAccountNumber());
     }
 }

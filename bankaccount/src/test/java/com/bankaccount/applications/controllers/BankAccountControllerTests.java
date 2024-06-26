@@ -1,8 +1,8 @@
 package com.bankaccount.applications.controllers;
 
-import com.bankaccount.application.controllers.BankAccountController;
-import com.bankaccount.application.services.BankAccountService;
-import com.bankaccount.application.services.StatementService;
+import com.bankaccount.application.adapters.BankAccountController;
+import com.bankaccount.application.services.BankAccountServicePorts;
+import com.bankaccount.application.services.StatementServicePorts;
 import com.bankaccount.domain.models.BankAccount;
 import com.bankaccount.domain.models.Statement;
 import com.bankaccount.domain.models.Transaction;
@@ -27,10 +27,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class BankAccountControllerTests {
 
     @Mock
-    private BankAccountService bankAccountService;
+    private BankAccountServicePorts bankAccountService;
 
     @Mock
-    private StatementService statementService;
+    private StatementServicePorts statementService;
 
     @InjectMocks
     private BankAccountController bankAccountController;
@@ -109,14 +109,14 @@ class BankAccountControllerTests {
         UUID accountNumber = UUID.randomUUID();
         double overdraftLimit = 100.0;
         BankAccount mockAccount = new BankAccount(100.0, 0);
-        when(bankAccountService.setOverdraftLimit(accountNumber, overdraftLimit)).thenReturn(mockAccount);
+        when(bankAccountService.setOverDraftLimit(accountNumber, overdraftLimit)).thenReturn(mockAccount);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/accounts/{accountNumber}/setOverDraftLimit", accountNumber)
                         .param("amount", "100.0")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
-        verify(bankAccountService, times(1)).setOverdraftLimit(accountNumber, overdraftLimit);
+        verify(bankAccountService, times(1)).setOverDraftLimit(accountNumber, overdraftLimit);
     }
 
     @Test
